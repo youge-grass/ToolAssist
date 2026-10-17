@@ -1,0 +1,14 @@
+name: YogurToolAssistServer
+version: '${version}'
+main: dev.yogur.toolassist.server.YogurToolAssistServer
+api-version: '1.21'
+author: Yogur
+commands:
+  yogurtoolassist:
+    description: 管理客户端工具辅助同步
+    usage: /yogurtoolassist <reload|status|set>
+    aliases: [yta]
+permissions:
+  yogurtoolassist.admin:
+    default: op
+    description: 管理 YogurToolAssist 同步

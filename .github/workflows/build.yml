@@ -1,0 +1,34 @@
+name: Build ToolAssist
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build client
+        working-directory: YogurToolAssist
+        run: bash gradlew --no-daemon build
+      - name: Build server
+        working-directory: YogurToolAssistServer
+        run: bash gradlew --no-daemon build
+      - name: Upload client jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: YogurToolAssist-1.0.7
+          path: YogurToolAssist/build/libs/YogurToolAssist-1.0.7.jar
+          if-no-files-found: error
+      - name: Upload server jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: YogurToolAssistServer-1.0.1
+          path: YogurToolAssistServer/build/libs/YogurToolAssistServer-1.0.1.jar
+          if-no-files-found: error

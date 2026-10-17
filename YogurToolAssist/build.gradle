@@ -1,0 +1,37 @@
+plugins {
+    id 'fabric-loom' version '1.13.3'
+    id 'maven-publish'
+}
+version = project.mod_version
+group = 'dev.yogur'
+base { archivesName = 'YogurToolAssist' }
+repositories {
+    exclusiveContent {
+        forRepository { maven { url = uri('local-maven') } }
+        filter {
+            includeModule('net.fabricmc', 'yarn')
+            includeModule('net.fabricmc', 'intermediary')
+            includeModule('net.fabricmc', 'sponge-mixin')
+            includeGroup('org.ow2.asm')
+            includeGroup('io.github.llamalad7')
+        }
+    }
+    mavenCentral()
+    maven { url = uri('https://maven.fabricmc.net/') }
+}
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.11'
+    mappings 'net.fabricmc:yarn:1.21.11+build.4:v2'
+    modImplementation files('libs/fabric-loader-0.19.3.jar')
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.141.6+1.21.11'
+    modCompileOnly files('libs/modmenu.jar')
+}
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand version: project.version }
+}
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+java { withSourcesJar() }

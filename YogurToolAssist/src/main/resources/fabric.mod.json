@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "yogurtoolassist",
+  "version": "${version}",
+  "name": "YogurToolAssist",
+  "description": "Adjustable sound slowdown and responsive hotbar selection.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.yogur.toolassist.YogurToolAssist"],
+    "modmenu": ["dev.yogur.toolassist.ModMenuIntegration"]
+  },
+  "suggests": { "modmenu": ">=17.0.0" },
+  "mixins": ["yogurtoolassist.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

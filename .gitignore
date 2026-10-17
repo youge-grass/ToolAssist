@@ -1,0 +1,11 @@
+**/.gradle/
+**/build/
+**/run/
+**/logs/
+**/log/
+**/.idea/
+**/*.iml
+**/config/
+**/local.properties
+.env
+.env.*
