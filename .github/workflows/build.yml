@@ -29,6 +29,6 @@ jobs:
       - name: Upload server jar
         uses: actions/upload-artifact@v4
         with:
-          name: YogurToolAssistServer-1.0.1
-          path: YogurToolAssistServer/build/libs/YogurToolAssistServer-1.0.1.jar
+          name: YogurToolAssistServer-1.0.3
+          path: YogurToolAssistServer/build/libs/YogurToolAssistServer-1.0.3.jar
           if-no-files-found: error
