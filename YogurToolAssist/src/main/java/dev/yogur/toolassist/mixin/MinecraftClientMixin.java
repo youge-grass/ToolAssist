@@ -28,6 +28,7 @@ public abstract class MinecraftClientMixin {
 
     @Unique
     private boolean yogur$handlesHotbar(MinecraftClient client) {
+        if (!YogurToolAssist.CUSTOM_HOTBAR_ADJUSTMENTS_ENABLED) return false;
         return client.player != null && client.world != null && client.options != null
             && client.currentScreen == null && client.getOverlay() == null
             && client.isWindowFocused() && !client.player.isSpectator()

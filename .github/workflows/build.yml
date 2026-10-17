@@ -23,8 +23,8 @@ jobs:
       - name: Upload client jar
         uses: actions/upload-artifact@v4
         with:
-          name: YogurToolAssist-1.0.9
-          path: YogurToolAssist/build/libs/YogurToolAssist-1.0.9.jar
+          name: YogurToolAssist-1.0.10
+          path: YogurToolAssist/build/libs/YogurToolAssist-1.0.10.jar
           if-no-files-found: error
       - name: Upload server jar
         uses: actions/upload-artifact@v4
