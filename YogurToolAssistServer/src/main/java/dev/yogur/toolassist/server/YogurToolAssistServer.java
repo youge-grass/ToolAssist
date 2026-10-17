@@ -14,16 +14,21 @@ public final class YogurToolAssistServer extends JavaPlugin {
     private boolean enabled;
     private float speed;
     private boolean force;
+    private boolean disableEatingCompensation;
+    private UseDurationLimiter eatingCompensation;
 
     @Override public void onEnable() {
         getServer().getMessenger().registerOutgoingPluginChannel(this, CHANNEL);
         loadSettings();
         getServer().getPluginManager().registerEvents(new SyncListener(this), this);
+        eatingCompensation = new UseDurationLimiter(this, disableEatingCompensation);
+        getServer().getPluginManager().registerEvents(eatingCompensation, this);
         getLogger().info("YogurToolAssistServer enabled");
     }
     @Override public void onDisable() {
         enabled = false;
         force = false;
+        if (eatingCompensation != null) eatingCompensation.restoreModifiedPlayers();
         syncAll();
         getServer().getMessenger().unregisterOutgoingPluginChannel(this, CHANNEL);
     }
@@ -33,6 +38,7 @@ public final class YogurToolAssistServer extends JavaPlugin {
         double configuredSpeed = getConfig().getDouble("speed", 0.5);
         speed = Double.isFinite(configuredSpeed) ? (float) Math.max(0.1, Math.min(2.0, configuredSpeed)) : 0.5f;
         force = getConfig().getBoolean("force", false);
+        disableEatingCompensation = getConfig().getBoolean("disable-eating-compensation", true);
     }
     void sync(Player player) {
         if (!player.isOnline()) return;

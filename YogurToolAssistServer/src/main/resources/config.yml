@@ -1,3 +1,5 @@
 enabled: true
 speed: 0.5
 force: false
+# 独立于视觉同步 enabled；仅在 Paper tickrate < 20 时禁用进食 lag compensation。
+disable-eating-compensation: true
