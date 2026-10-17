@@ -3,6 +3,7 @@ package dev.yogur.toolassist.mixin;
 import dev.yogur.toolassist.YogurToolAssist;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.player.PlayerInventory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -57,7 +58,15 @@ public abstract class MinecraftClientMixin {
         for (int slot = 0; slot < Math.min(9, client.options.hotbarKeys.length); slot++) {
             KeyBinding binding = client.options.hotbarKeys[slot];
             if (binding == null) continue;
-            while (binding.wasPressed()) inventory.setSelectedSlot(slot);
+            while (binding.wasPressed()) {
+                if (inventory.selectedSlot != slot) {
+                    inventory.setSelectedSlot(slot);
+                    ClientPlayerInteractionManager interactionManager = client.interactionManager;
+                    if (interactionManager != null) {
+                        ((ClientPlayerInteractionManagerInvoker) interactionManager).yogur$syncSelectedSlot();
+                    }
+                }
+            }
         }
     }
 }
