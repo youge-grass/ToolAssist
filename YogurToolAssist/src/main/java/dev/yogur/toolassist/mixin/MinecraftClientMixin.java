@@ -59,7 +59,7 @@ public abstract class MinecraftClientMixin {
             KeyBinding binding = client.options.hotbarKeys[slot];
             if (binding == null) continue;
             while (binding.wasPressed()) {
-                if (inventory.selectedSlot != slot) {
+                if (inventory.getSelectedSlot() != slot) {
                     inventory.setSelectedSlot(slot);
                     ClientPlayerInteractionManager interactionManager = client.interactionManager;
                     if (interactionManager != null) {
