@@ -25,8 +25,8 @@ import java.io.StringReader;
 
 public final class YogurToolAssist implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("YogurToolAssist");
-    /** 保留旧实现但禁用所有自定义物品栏/快捷栏调整，让原版负责输入与同步。 */
-    public static final boolean CUSTOM_HOTBAR_ADJUSTMENTS_ENABLED = false;
+    /** 仅节流原版数字键输入，不改动选槽同步或攻击顺序。 */
+    public static final boolean CUSTOM_HOTBAR_ADJUSTMENTS_ENABLED = true;
     private static volatile float speed = 0.5f;
     private static volatile double hotbarInterval = 0.05;
     private static volatile float localSpeed = 0.5f;
@@ -102,7 +102,7 @@ public final class YogurToolAssist implements ClientModInitializer {
             if (CUSTOM_HOTBAR_ADJUSTMENTS_ENABLED) dispatcher.register(ClientCommandManager.literal("hotbarinterval")
                 .executes(context -> {
                     context.getSource().sendFeedback(Text.literal("数字键检测间隔：" + hotbarInterval
-                        + " 秒（0.05–60；0.05 为原版检测频率上限）"));
+                        + " 秒（范围 0.05–60；默认 0.05，不改变原版输入时序）"));
                     return 1;
                 })
                 .then(ClientCommandManager.argument("seconds", DoubleArgumentType.doubleArg(0.05, 60.0))

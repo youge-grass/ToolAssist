@@ -1,73 +1,50 @@
 package dev.yogur.toolassist.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.yogur.toolassist.YogurToolAssist;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.entity.player.PlayerInventory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Slice;
 
 @Mixin(MinecraftClient.class)
 public abstract class MinecraftClientMixin {
     @Unique private long yogur$lastHotbarPoll;
     @Unique private boolean yogur$hasHotbarPoll;
+    @Unique private boolean yogur$allowHotbarPass;
 
-    @Redirect(method = "handleInputEvents", at = @At(value = "INVOKE",
-        target = "Lnet/minecraft/client/option/KeyBinding;wasPressed()Z", ordinal = 2))
-    private boolean yogur$limitVanillaHotbar(KeyBinding binding) {
+    // 1.21.11 bytecode: hotbarKeys -> AALOAD -> wasPressed, before socialInteractionsKey.
+    // This slice contains exactly one wasPressed call site; never intercept attack/use keys.
+    @WrapOperation(method = "handleInputEvents", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/client/option/KeyBinding;wasPressed()Z"),
+        slice = @Slice(from = @At(value = "FIELD",
+            target = "Lnet/minecraft/client/option/GameOptions;hotbarKeys:[Lnet/minecraft/client/option/KeyBinding;"),
+            to = @At(value = "FIELD",
+            target = "Lnet/minecraft/client/option/GameOptions;socialInteractionsKey:Lnet/minecraft/client/option/KeyBinding;")),
+        require = 1, allow = 1)
+    private boolean yogur$limitVanillaHotbar(KeyBinding binding, Operation<Boolean> original) {
         MinecraftClient client = (MinecraftClient) (Object) this;
-        if (!yogur$handlesHotbar(client)) return binding.wasPressed();
-        yogur$pollHotbar();
-        return false;
-    }
-
-    @Unique
-    private boolean yogur$handlesHotbar(MinecraftClient client) {
-        if (!YogurToolAssist.CUSTOM_HOTBAR_ADJUSTMENTS_ENABLED) return false;
-        return client.player != null && client.world != null && client.options != null
-            && client.currentScreen == null && client.getOverlay() == null
-            && client.isWindowFocused() && !client.player.isSpectator()
-            && client.options.hotbarKeys != null
-            && client.options.saveToolbarActivatorKey != null
-            && client.options.loadToolbarActivatorKey != null
-            && !client.options.saveToolbarActivatorKey.isPressed()
-            && !client.options.loadToolbarActivatorKey.isPressed();
-    }
-
-    @Inject(method = "render", at = @At("HEAD"))
-    private void yogur$responsiveHotbar(boolean tick, CallbackInfo ci) {
-        if (ci != null) yogur$pollHotbar();
-    }
-
-    @Unique
-    private void yogur$pollHotbar() {
-        MinecraftClient client = (MinecraftClient) (Object) this;
-        if (!yogur$handlesHotbar(client)) return;
-        PlayerInventory inventory = client.player.getInventory();
-        if (inventory == null) return;
-        long now = System.nanoTime();
-        // 配置间隔最低为 50ms；帧率再高也不额外消费输入。
-        if (yogur$hasHotbarPoll
-            && now - yogur$lastHotbarPoll < YogurToolAssist.hotbarIntervalNanos()) return;
-        yogur$hasHotbarPoll = true;
-        yogur$lastHotbarPoll = now;
-        for (int slot = 0; slot < Math.min(9, client.options.hotbarKeys.length); slot++) {
-            KeyBinding binding = client.options.hotbarKeys[slot];
-            if (binding == null) continue;
-            while (binding.wasPressed()) {
-                if (inventory.getSelectedSlot() != slot) {
-                    inventory.setSelectedSlot(slot);
-                    ClientPlayerInteractionManager interactionManager = client.interactionManager;
-                    if (interactionManager != null) {
-                        ((ClientPlayerInteractionManagerInvoker) interactionManager).yogur$syncSelectedSlot();
-                    }
-                }
+        long interval = YogurToolAssist.hotbarIntervalNanos();
+        // Default is a true passthrough, including catch-up ticks and queued key presses.
+        if (interval <= 50_000_000L || client.player == null || client.player.isSpectator()
+            || client.options.saveToolbarActivatorKey.isPressed()
+            || client.options.loadToolbarActivatorKey.isPressed()) {
+            yogur$hasHotbarPoll = false;
+            return original.call(binding);
+        }
+        // Vanilla visits all nine bindings once per input pass. Decide once for the whole pass.
+        if (binding == client.options.hotbarKeys[0]) {
+            long now = System.nanoTime();
+            yogur$allowHotbarPass = !yogur$hasHotbarPoll || now - yogur$lastHotbarPoll >= interval;
+            if (yogur$allowHotbarPass) {
+                yogur$lastHotbarPoll = now;
+                yogur$hasHotbarPoll = true;
             }
         }
+        // A blocked pass leaves vanilla's press counters untouched. No custom slot or packets.
+        return yogur$allowHotbarPass && original.call(binding);
     }
 }
