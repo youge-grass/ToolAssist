@@ -1,0 +1,9 @@
+pluginManagement {
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    plugins { id 'net.fabricmc.fabric-loom' version "${loom_version}" }
+}
+rootProject.name = 'YogurToolAssist-mc26.4'

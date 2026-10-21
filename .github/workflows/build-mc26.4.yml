@@ -1,0 +1,59 @@
+name: Build mc26.4 snapshot port
+on:
+  workflow_dispatch:
+    inputs:
+      minecraft_version:
+        description: Exact Minecraft version
+        default: '26.4-snapshot-5'
+        required: true
+      fabric_api_version:
+        description: Exact Fabric API version
+        default: '0.164.1+26.4'
+        required: true
+      loader_version:
+        description: Exact Fabric Loader version
+        default: '0.20.0'
+        required: true
+      modmenu_version:
+        description: Optional compile-only ModMenu API (runtime unverified)
+        default: '21.0.0'
+        required: true
+      loom_version:
+        description: Exact Loom version
+        default: '1.17.21'
+        required: true
+      java_version:
+        description: Java major version
+        default: '25'
+        required: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java_version }}
+      - name: Build independent port
+        working-directory: YogurToolAssist/ports/mc26.4
+        env:
+          MC: ${{ inputs.minecraft_version }}
+          API: ${{ inputs.fabric_api_version }}
+          LOADER: ${{ inputs.loader_version }}
+          MENU: ${{ inputs.modmenu_version }}
+          LOOM: ${{ inputs.loom_version }}
+          JAVA: ${{ inputs.java_version }}
+        run: |
+          for value in "$MC" "$API" "$LOADER" "$MENU" "$LOOM" "$JAVA"; do
+            [[ "$value" =~ ^[A-Za-z0-9.+_-]+$ ]] || exit 1
+            [[ "$value" != *latest* && "$value" != *'+' ]] || exit 1
+          done
+          bash gradlew --no-daemon build "-Pminecraft_version=$MC" "-Pfabric_api_version=$API" "-Ploader_version=$LOADER" "-Pmodmenu_version=$MENU" "-Ploom_version=$LOOM" "-Pjava_version=$JAVA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: YogurToolAssist-mc26.4-snapshot-${{ inputs.minecraft_version }}
+          path: YogurToolAssist/ports/mc26.4/build/libs/*.jar
+          if-no-files-found: error

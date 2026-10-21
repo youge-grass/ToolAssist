@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "dev.yogur.toolassist.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": ["ChannelMixin", "MinecraftMixin", "TextureTransformMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

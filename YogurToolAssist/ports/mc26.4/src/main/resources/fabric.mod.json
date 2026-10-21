@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "yogurtoolassist",
+  "version": "${version}",
+  "name": "YogurToolAssist mc26.4 Snapshot",
+  "description": "Sound/glint speed and vanilla hotbar throttling. Optional ModMenu integration is compile-only; runtime compatibility unverified.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.yogur.toolassist.YogurToolAssist"],
+    "modmenu": ["dev.yogur.toolassist.ModMenuIntegration"]
+  },
+  "mixins": ["yogurtoolassist.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}",
+    "java": ">=${java_version}",
+    "fabric-api": ">=${fabric_api_version}"
+  }
+}
